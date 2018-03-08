@@ -1,0 +1,185 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Hello World</title>
+</head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.7.0/pixi.js"></script>
+<body>
+</body>
+</html>
+
+<script type="text/javascript">
+    
+    // setting start
+    let config = {
+        factor: 0.02,
+        panMaxX: 100,
+        panMaxY: 20,
+    };
+    // setting end
+    
+    let app;
+    let c_back, c_ground, c_chara1, c_chara2, c_chara3, c_enemy;
+    let containers = [];
+    let posX = 0;
+    let posY = 0;
+    let baseX = 0;
+    let baseY = 0;
+    let distanceX = 0;
+    let distanceY = 0;
+    let fixX = 0;
+    let fixY = 0;
+    let canMove = false;
+    
+    (function() {
+        loadAssets();
+    })()
+    
+    function loadAssets(){
+        PIXI.loader
+          .add([
+            "img/c001.png",
+            "img/c002.png",
+            "img/c003.png",
+            "img/c004.png",
+            "img/bg.png",
+            "img/ground.png",
+          ])
+          .load(setUp);
+    }
+    
+    function setUp() {
+        let type = "WebGL";
+        if(!PIXI.utils.isWebGLSupported()){
+            type = "canvas";
+        }
+
+        PIXI.utils.sayHello(type);
+        
+        app = new PIXI.Application();
+        document.body.appendChild(app.view);
+        
+        // create container
+        c_back = new PIXI.Container();
+        c_ground = new PIXI.Container();
+        c_chara1 = new PIXI.Container();
+        c_chara2 = new PIXI.Container();
+        c_chara3 = new PIXI.Container();
+        containers.push(c_back, c_ground, c_chara1, c_chara2, c_chara3);
+        
+        c_back.z = 1;
+        c_ground.z = 10;
+        c_chara1.z = 100;
+        c_chara2.z = 200;
+        c_chara3.z = 300;
+        
+        app.stage.addChild(c_back);
+        app.stage.addChild(c_ground);
+        app.stage.addChild(c_chara1);
+        app.stage.addChild(c_chara2);
+        app.stage.addChild(c_chara3);
+        
+        createBack();
+        createGround();
+        
+        createCharacter1();
+        createCharacter2();
+        createCharacter3();
+        createEnemy();
+
+        setMouseEvent();
+    }
+    
+    function play(delta) {
+        if (baseX == 0 && baseY == 0) return;
+        containers.forEach((container) => {
+            container.x += calcMove(distanceX, container.z);    
+            container.y += calcMove(distanceY, container.z);
+        });
+    }
+    
+    function setMouseEvent() {
+        app.stage.interactive = true;
+        app.stage.mousemove = function(mouseData) {
+            if (!canMove) return;
+            posX = app.renderer.plugins.interaction.mouse.global.x;
+            posY = app.renderer.plugins.interaction.mouse.global.y;
+            distanceX = distanceY = 0;
+            if (Math.abs(fixX - posX) <= config.panMaxX) {
+                distanceX = baseX - posX;
+            }
+            if (Math.abs(fixY - posY) <= config.panMaxY) {
+                distanceY = baseY - posY;    
+            }
+            play();
+            baseX = posX;
+            baseY = posY;
+        }
+        app.stage.mousedown = function(e) {
+            canMove = true;
+            baseX = app.renderer.plugins.interaction.mouse.global.x;
+            baseY = app.renderer.plugins.interaction.mouse.global.y;
+            fixX = baseX;
+            fixY = baseY;
+        }
+        app.stage.mouseup = function(e) {
+            canMove = false;
+            resetContainers();
+        }
+    }
+    
+    function calcMove(distance, z) {
+        if (distance == 0) return 0;
+        return config.factor * z * distance;
+    }
+    
+    function resetContainers() {
+        containers.forEach((container) => {
+            container.x = 0;
+            container.y = 0;
+        });
+    }
+    
+    function createBack(){
+        img = new PIXI.Sprite(PIXI.loader.resources["img/bg.png"].texture);
+        img.position.set(-50, -50);
+        c_back.addChild(img);
+    }
+    
+    function createGround(){
+        img = new PIXI.Sprite(PIXI.loader.resources["img/ground.png"].texture);
+        img.position.set(-50, 300);
+        img.scale.set(2, 1);
+        c_ground.addChild(img); 
+    }
+    
+    function createCharacter1(){
+        img = new PIXI.Sprite(PIXI.loader.resources["img/c001.png"].texture);
+        img.position.set(400, 150);
+        img.scale.set(0.3, 0.3);
+        c_chara1.addChild(img); 
+    }
+    
+    function createCharacter2(){
+        img = new PIXI.Sprite(PIXI.loader.resources["img/c002.png"].texture);
+        img.position.set(450, 180);
+        img.scale.set(0.4, 0.4);
+        c_chara2.addChild(img);         
+    }
+    
+    function createCharacter3(){
+        img = new PIXI.Sprite(PIXI.loader.resources["img/c003.png"].texture);
+        img.position.set(500, 200);
+        img.scale.set(0.5, 0.5);
+        c_chara3.addChild(img);             
+    }
+    
+    function createEnemy(){
+        img = new PIXI.Sprite(PIXI.loader.resources["img/c004.png"].texture);
+        img.position.set(100, 180);
+        img.scale.set(0.4, 0.4);
+        c_chara2.addChild(img);             
+    }
+
+</script>
